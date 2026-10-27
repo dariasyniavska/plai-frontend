@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Plai - Гірські Маршрути</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1b3a1a 0%, #2f5a28 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #24421e;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #5a8c4f;
+            padding-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background: #f4f9f4;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 6px solid #5a8c4f;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        li:hover {
+            transform: translateX(8px);
+            background: #e9f2e9;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        strong {
+            color: #1b3a1a;
+            font-size: 1.25em;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            background: #5a8c4f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌲 Маршрути Карпатами</h1>
+        <ul id="routes-list">Завантаження...</ul>
+    </div>
+
+    <script>
+        fetch('http://127.0.0.1:8000/api/v1/routes/')
+            .then(response => response.json())
+            .then(data => {
+                const listElement = document.getElementById('routes-list');
+                listElement.innerHTML = '';
+
+                if (data.length === 0) {
+                    listElement.innerHTML = '<li>Маршрутів поки немає. Додайте їх в панелі адміністратора.</li>';
+                    return;
+                }
+
+                data.forEach(route => {
+                    const li = document.createElement('li');
+
+                    const difficultyMap = {
+                        'easy': 'Легкий',
+                        'medium': 'Середній',
+                        'hard': 'Складний'
+                    };
+                    const readableDifficulty = difficultyMap[route.difficulty] || route.difficulty;
+
+                    li.innerHTML = `
+                        <strong>${route.name}</strong>
+                        <span class="difficulty-badge">${readableDifficulty}</span>
+                        <br><br>
+                        ${route.description}
+                    `;
+                    listElement.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Помилка:', error);
+                document.getElementById('routes-list').innerHTML = '<li>Помилка завантаження даних з бекенду. Перевірте, чи запущений сервер Django.</li>';
+            });
+    </script>
+</body>
+</html>
