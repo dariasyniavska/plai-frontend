@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Plai - Реєстрація</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="nav"></nav>
+
+    <div class="container">
+        <h1>Реєстрація</h1>
+        <div id="message" class="message" hidden></div>
+
+        <form id="register-form">
+            <label>Username *
+                <input type="text" id="username" maxlength="150" required>
+            </label>
+            <label>Імʼя
+                <input type="text" id="first_name" maxlength="150">
+            </label>
+            <label>Прізвище
+                <input type="text" id="last_name" maxlength="150">
+            </label>
+            <label>Email *
+                <input type="email" id="email" maxlength="254" required>
+            </label>
+            <label>Пароль *
+                <input type="password" id="password" maxlength="128" required>
+            </label>
+            <label>Повторіть пароль *
+                <input type="password" id="password_confirmation" maxlength="128" required>
+            </label>
+            <button type="submit">Зареєструватися</button>
+        </form>
+        <p>Вже є акаунт? <a href="login.html">Увійти</a></p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const message = document.getElementById("message");
+        const fields = ["username", "first_name", "last_name", "email", "password", "password_confirmation"];
+
+        redirectIfAuthenticated().then((user) => renderNav(user));
+
+        document.getElementById("register-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const body = {};
+            fields.forEach((field) => {
+                body[field] = document.getElementById(field).value;
+            });
+            try {
+                const response = await postJson("/auth/register/", body);
+                const data = await response.json();
+                if (response.ok) {
+                    location.replace("login.html?registered=1");
+                } else {
+                    showMessage(message, formatError(data), "error");
+                }
+            } catch (error) {
+                showMessage(message, "Не вдалося звʼязатися із сервером", "error");
+            }
+        });
+    </script>
+</body>
+</html>
