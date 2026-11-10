@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Plai - Вхід</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="nav"></nav>
+
+    <div class="container">
+        <h1>Вхід</h1>
+        <div id="message" class="message" hidden></div>
+
+        <form id="login-form">
+            <label>Username
+                <input type="text" id="username" required>
+            </label>
+            <label>Пароль
+                <input type="password" id="password" required>
+            </label>
+            <button type="submit">Увійти</button>
+        </form>
+        <p>Немає акаунта? <a href="register.html">Зареєструватися</a></p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const message = document.getElementById("message");
+
+        redirectIfAuthenticated().then((user) => renderNav(user));
+
+        if (new URLSearchParams(location.search).get("registered")) {
+            showMessage(message, "Реєстрацію завершено. Тепер увійдіть.", "success");
+        }
+
+        document.getElementById("login-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            try {
+                const response = await postJson("/auth/login/", {
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value,
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    saveTokens(data.access, data.refresh);
+                    location.replace(getNextPage());
+                } else {
+                    showMessage(message, formatError(data), "error");
+                }
+            } catch (error) {
+                showMessage(message, "Не вдалося звʼязатися із сервером", "error");
+            }
+        });
+    </script>
+</body>
+</html>

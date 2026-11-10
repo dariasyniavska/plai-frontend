@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Plai - Профіль</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="nav"></nav>
+
+    <div class="container" id="content" hidden>
+        <h1>Мій профіль</h1>
+        <div class="profile-row"><strong>Username:</strong> <span id="username"></span></div>
+        <div class="profile-row"><strong>Імʼя:</strong> <span id="first_name"></span></div>
+        <div class="profile-row"><strong>Прізвище:</strong> <span id="last_name"></span></div>
+        <div class="profile-row"><strong>Email:</strong> <span id="email"></span></div>
+
+        <div id="admin-block" hidden>
+            <h1>Для адміністратора</h1>
+            <div id="message" class="message" hidden></div>
+            <form id="range-form">
+                <label>Назва гірського масиву
+                    <input type="text" id="range-name" required>
+                </label>
+                <label>Опис
+                    <textarea id="range-description" required></textarea>
+                </label>
+                <button type="submit">Додати гірський масив</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        async function init() {
+            const user = await requireAuth();
+            if (!user) {
+                return;
+            }
+            renderNav(user);
+
+            ["username", "first_name", "last_name", "email"].forEach((field) => {
+                document.getElementById(field).textContent = user[field] || "-";
+            });
+            document.getElementById("content").hidden = false;
+
+            if (user.is_staff) {
+                document.getElementById("admin-block").hidden = false;
+            }
+        }
+
+        document.getElementById("range-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const message = document.getElementById("message");
+            try {
+                const response = await apiFetch("/mountain-ranges/", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name: document.getElementById("range-name").value,
+                        description: document.getElementById("range-description").value,
+                    }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(message, "Гірський масив «" + data.name + "» додано", "success");
+                    event.target.reset();
+                } else {
+                    showMessage(message, formatError(data), "error");
+                }
+            } catch (error) {
+                showMessage(message, "Не вдалося звʼязатися із сервером", "error");
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
